@@ -1,60 +1,40 @@
 import { useNavigation } from "@react-navigation/native";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { useGetShiftsListQuery } from "../../api/shiftsApi";
 import Geolocation from '@react-native-community/geolocation';
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ICoordinates, IShift } from "../../interfaces/shift.interface";
 import { FlashList } from "@shopify/flash-list";
 import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 import { Divider, Card, Text } from 'react-native-paper';
-import FastImage from 'react-native-fast-image';
-import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 import { SafeAreaView } from "react-native-safe-area-context";
+import LeftContent from "../../components/shared/ShiftCardLeftContent";
+import ShiftRating from "../../components/shared/ShiftRatingSummary";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const [coords, setCoords] = useState<ICoordinates>();
+  const [coordinates, setCoordinates] = useState<ICoordinates>();
 
-  if (!coords) {
+  if (!coordinates) {
     Geolocation.getCurrentPosition(info => {
-      console.log(info);
-      // Debug!
-      setCoords({longitude: 38.987221, latitude: 45.039268});
+      setCoordinates({longitude: info.coords.longitude, latitude: info.coords.latitude});
     });
   }
 
   const { data, error, isLoading } = useGetShiftsListQuery(
-    {latitude: coords?.latitude, longitude: coords?.longitude},
-    {skip: !coords}
+    {latitude: coordinates?.latitude!, longitude: coordinates?.longitude!},
+    {skip: !coordinates}
   )
 
-  const renderItem = (data: { index: number; item: IShift }) => {
+  const renderItem = useCallback((data: { index: number; item: IShift }) => {
     const item = data.item;
-
-    const LeftContent = (props: any) => (
-      <FastImage
-          style={styles.logo}
-          source={{
-              uri: item.logo,
-              priority: FastImage.priority.normal,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
-      />
-    );
-
-    const ShiftRating = (
-      <>
-        {item.customerRating ? (<><FontAwesome name="star" size={15} color="orange" />{item.customerRating} </>) : ''}
-        {item.customerFeedbacksCount}
-      </>
-    );
-    
+        
     return (
-      <Card style={styles.cardStyle}>
-        <Card.Title 
+      <Card style={styles.cardStyle} onPress={() => navigation.navigate('ShiftDetails', {item})}>
+        <Card.Title
           title={item.workTypes[0].nameOne} 
-          subtitle={ShiftRating} 
-          left={LeftContent}
+          subtitle={<ShiftRating customerRating={item.customerRating} customerFeedbacksCount={item.customerFeedbacksCount} />} 
+          left={() => LeftContent({imageUri: item.logo })}
         />
         <Card.Content>
           <Text variant="titleLarge">{item.priceWorker}₽</Text>
@@ -64,19 +44,18 @@ export default function HomeScreen() {
         </Card.Content>
       </Card>
     )
-  }
+  }, [data]);
   
   return (
     <SafeAreaView style={styles.container}>
-      {isLoading && (
-        <ActivityIndicator animating={true} color={MD2Colors.red800} />
-      )}
+      {isLoading && <ActivityIndicator animating={true} color={MD2Colors.red800} />}
+      {(!isLoading && data && data.length === 0) && <Text>Нет смен в текущей локации.</Text>}
+      {error && <Text>Не удалось получить данные.</Text>}
+
       <FlashList 
         data={data}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.contentContainerStyle}
-        ListEmptyComponent={<Text>Нет смен в текущей локации</Text>}
       />
     </SafeAreaView>
   );
@@ -86,6 +65,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   cardStyle: {
     marginVertical: 10
@@ -93,12 +73,4 @@ const styles = StyleSheet.create({
   divider: {
     marginVertical: 10
   },
-  contentContainerStyle: {
-   marginHorizontal: 16
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-  }
 });

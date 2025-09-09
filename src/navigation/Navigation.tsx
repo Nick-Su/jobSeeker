@@ -1,8 +1,20 @@
 import { createStaticNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/Home';
+import ShiftDetails from '../screens/shiftDetails/ShiftDetails';
+import { RouteProp } from '@react-navigation/native';
+import { IShift } from '../interfaces/shift.interface';
 
-import JobDetails from '../screens/shiftDetails/ShiftDetails';
+export type RootStackParamList = {
+  Home: undefined;
+  ShiftDetails: { item: IShift };
+};
+
+type TShiftDetailsRouteProp = RouteProp<RootStackParamList, 'ShiftDetails'>;
+
+export type TShiftDetailsRouteProps = {
+  route: TShiftDetailsRouteProp;
+};
 
 const RootStack = createNativeStackNavigator({
   screens: {
@@ -12,8 +24,8 @@ const RootStack = createNativeStackNavigator({
         title: 'Доступные смены'
       }
     },
-    JobDetails: {
-      screen: JobDetails,
+    ShiftDetails: {
+      screen: ShiftDetails,
       options: {
         title: 'О смене'
       }
