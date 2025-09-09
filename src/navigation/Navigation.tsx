@@ -2,7 +2,7 @@ import { createStaticNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/Home';
 
-import JobDetails from '../screens/jobDetails/JobDetails';
+import JobDetails from '../screens/shiftDetails/ShiftDetails';
 
 const RootStack = createNativeStackNavigator({
   screens: {
