@@ -8,7 +8,6 @@ export const shiftsApi = createApi({
   endpoints: (builder) => ({
     getShiftsList: builder.query<IShift[], {longitude: number; latitude: number;}>({
       query: ({longitude, latitude}) => {
-        console.log('Send a request', longitude, latitude)
         return {
           url: `/api/shifts/map-list-unauthorized?latitude=${latitude}&longitude=${longitude}`,
           method: 'GET'
